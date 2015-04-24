@@ -3,6 +3,9 @@
  */
 package com.surendra.calendar.entity;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 
 /**
  * @author surendra.singh
@@ -55,26 +58,22 @@ public class Schedule {
 	
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + (int) (endTime ^ (endTime >>> 32));
-		result = prime * result + (int) (startTime ^ (startTime >>> 32));
-		return result;
+		return new HashCodeBuilder(17, 37).append(this.startTime).append(this.endTime).toHashCode();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (obj == null) {
+			return false;
+		}
+		if (obj == this) {
 			return true;
-		if (obj == null)
+		}
+		if (obj.getClass() != getClass()) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Schedule other = (Schedule) obj;
-		if (endTime != other.endTime)
-			return false;
-		if (startTime != other.startTime)
-			return false;
-		return true;
+		}
+		Schedule rhs = (Schedule) obj;
+		return new EqualsBuilder().appendSuper(super.equals(obj))
+				.append(this.startTime, rhs.startTime).append(this.endTime, rhs.endTime).isEquals();
 	}
 }

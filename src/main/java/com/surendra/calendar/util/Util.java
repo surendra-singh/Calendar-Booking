@@ -12,7 +12,6 @@ import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -27,8 +26,6 @@ import java.util.stream.Stream;
 
 import com.surendra.calendar.entity.Booking;
 import com.surendra.calendar.entity.Organisation;
-import com.surendra.calendar.entity.Schedule;
-import com.surendra.calendar.enums.BookingStatus;
 
 /**
  * @author surendra.singh
@@ -44,9 +41,7 @@ public class Util {
 
 	public static final SimpleDateFormat HH_COLON_MM = new SimpleDateFormat("HH:mm");
 
-	private static final String INPUT_FILE = "/home/surendra/TestSample.txt";
-
-	private static final String OUTPUT_FILE = "/home/surendra/SampleOutput.txt";
+	private static final String OUTPUT_FILE = "Calendar_Booking_Output.txt";
 
 	private static Organisation organisation;
 	
@@ -54,10 +49,10 @@ public class Util {
 		return string != null && !string.trim().equals("");
 	}
 
-	public static Map<Organisation, Set<Booking>> readFile(String inputPath, String outputPath) throws IOException {
+	public static Map<Organisation, Set<Booking>> readFile(final String inputPath, final String outputPath) throws IOException {
 		organisation = null;
 		
-		Stream<String> stream = Files.lines(FileSystems.getDefault().getPath(Util.isValidString(inputPath) ? inputPath : INPUT_FILE), UTF_8);
+		Stream<String> stream = Files.lines(FileSystems.getDefault().getPath(inputPath), UTF_8);
 		Map<Organisation, Set<Booking>> bookingMap = new HashMap<Organisation, Set<Booking>>();
 
 		Pattern pattern = Pattern.compile("([01]?[0-9]|2[0-3]):[0-5][0-9].*");
@@ -66,17 +61,17 @@ public class Util {
 				try {
 					Matcher matcher = pattern.matcher(string);
 					if (matcher.matches()) {
-						organisation = createNewOrganisation(string);
+						organisation = Organisation.getInstance(string);
 					} else {
 						if (organisation == null) {
 							generateError(outputPath);
 						} else {
 							if (bookingMap.get(organisation) == null) {
 								Set<Booking> bookingSet = new TreeSet<Booking>();
-								bookingSet.add(createBookingInstance(string));
+								bookingSet.add(Booking.getInstance(string));
 								bookingMap.put(organisation, bookingSet);
 							} else {
-								bookingMap.get(organisation).add(createBookingInstance(string));
+								bookingMap.get(organisation).add(Booking.getInstance(string));
 							}
 						}
 					}
@@ -89,18 +84,7 @@ public class Util {
 		return bookingMap;
 	}
 
-	private static Organisation createNewOrganisation(String string) throws ParseException {
-		String[] arr = string.split(" ");
-		if (arr.length != 3) {
-			throw new ParseException("Parsing Exception", 1);
-		}
-		Organisation organisation = new Organisation(arr[2]);
-		organisation.setStartTime(HH_COLON_MM.parse(arr[0]).getTime());
-		organisation.setEndTime(HH_COLON_MM.parse(arr[1]).getTime());
-		return organisation;
-	}
-
-	public static void writeToFile(Map<Organisation, Set<Booking>> bookingMap, String outputPath) {
+	public static void writeToFile(final Map<Organisation, Set<Booking>> bookingMap, final String outputPath) {
 		try (BufferedWriter writer = Files.newBufferedWriter(FileSystems.getDefault().getPath(Util.isValidString(outputPath) ? outputPath : OUTPUT_FILE), UTF_8)) {
 			for (Organisation organisation : bookingMap.keySet()) {
 				writer.write(organisation.getName());
@@ -134,40 +118,5 @@ public class Util {
 			System.err.format("IOException: %s%n", x);
 		}
 		System.exit(0);
-	}
-
-	private static Booking createBookingInstance(String string) throws ParseException {
-		Booking booking = new Booking();
-
-		String[] arr = string.split(" ");
-		if (arr.length != 6) {
-			throw new ParseException("Not a valid formate", 1);
-		}
-		booking.setRequestedTime(YYYY_MM_DD_HH_MM_SS.parse(arr[0] + " " + arr[1]).getTime());
-
-		String employeeId = arr[2];
-		if (!Pattern.compile("EMP[0-9]{3}").matcher(employeeId).matches()) {
-			throw new ParseException("Employee Id not in pattern", 1);
-		}
-		booking.setEmployeeId(employeeId);
-
-		Schedule schedule = new Schedule();
-		schedule.setStartTime(YYYY_MM_DD_HH_MM.parse(arr[3] + " " + arr[4]).getTime());
-		try {
-			int duration = Integer.valueOf(arr[5]);
-			if (duration <= 0) {
-				throw new ParseException("Not valid meeting duration", 1);
-			}
-			Calendar calendar = Calendar.getInstance();
-			calendar.setTimeInMillis(schedule.getStartTime());
-			calendar.add(Calendar.HOUR_OF_DAY, duration);
-			schedule.setEndTime(calendar.getTimeInMillis());
-		} catch (NumberFormatException nfe) {
-			throw new ParseException("Not able to parse meeting duration", 1);
-		}
-		booking.setSchedule(schedule);
-		booking.setStatus(BookingStatus.APPLIED);
-
-		return booking;
 	}
 }

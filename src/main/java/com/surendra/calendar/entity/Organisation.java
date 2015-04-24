@@ -3,6 +3,13 @@
  */
 package com.surendra.calendar.entity;
 
+import static com.surendra.calendar.util.Util.HH_COLON_MM;
+
+import java.text.ParseException;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 /**
  * @author surendra.singh
  *
@@ -10,16 +17,27 @@ package com.surendra.calendar.entity;
 public class Organisation {
 
 	private String name;
-	
+
 	private long startTime;
-	
+
 	private long endTime;
 
 	public Organisation(String name) {
 		super();
 		this.name = name;
 	}
-	
+
+	public static Organisation getInstance(final String string) throws ParseException {
+		String[] arr = string.split(" ");
+		if (arr.length != 3) {
+			throw new ParseException("Parsing Exception", 1);
+		}
+		Organisation organisation = new Organisation(arr[2]);
+		organisation.setStartTime(HH_COLON_MM.parse(arr[0]).getTime());
+		organisation.setEndTime(HH_COLON_MM.parse(arr[1]).getTime());
+		return organisation;
+	}
+
 	public String getName() {
 		return name;
 	}
@@ -46,26 +64,21 @@ public class Organisation {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		return result;
+		return new HashCodeBuilder(17, 37).append(this.name).toHashCode();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (obj == null) {
+			return false;
+		}
+		if (obj == this) {
 			return true;
-		if (obj == null)
+		}
+		if (obj.getClass() != getClass()) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Organisation other = (Organisation) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		return true;
+		}
+		Organisation rhs = (Organisation) obj;
+		return new EqualsBuilder().appendSuper(super.equals(obj)).append(this.name, rhs.name).isEquals();
 	}
 }

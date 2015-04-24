@@ -21,8 +21,12 @@ public class BookingService {
 	
 	public static void main(String[] args) throws IOException {
 		
-		Map<Organisation, Set<Booking>> bookingMap = Util.readFile(args.length > 0 ? args[0] : null, args.length > 1 ? args[1] : null);
-
+		if (args.length == 0) {
+			System.out.println("Invalid number of arguments. Please provide input file name...");
+			System.exit(0);
+		}
+		
+		Map<Organisation, Set<Booking>> bookingMap = Util.readFile(args[0], args.length > 1 ? args[1] : null);
 		bookMeetings(bookingMap, args.length > 1 ? args[1] : null);
 	}
 

@@ -3,8 +3,15 @@
  */
 package com.surendra.calendar.entity;
 
+import static com.surendra.calendar.util.Util.YYYY_MM_DD_HH_MM;
+import static com.surendra.calendar.util.Util.YYYY_MM_DD_HH_MM_SS;
+
+import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Set;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.builder.CompareToBuilder;
 
 import com.surendra.calendar.enums.BookingStatus;
 
@@ -22,11 +29,6 @@ public class Booking implements Comparable<Booking> {
 	
 	private BookingStatus status;
 
-	public Booking() {
-		super();
-		this.schedule = new Schedule();
-	}
-	
 	public String getEmployeeId() {
 		return employeeId;
 	}
@@ -57,6 +59,46 @@ public class Booking implements Comparable<Booking> {
 
 	public void setStatus(BookingStatus status) {
 		this.status = status;
+	}
+	
+	/**
+	 * @param bookingString
+	 * @return
+	 * @throws ParseException
+	 */
+	public static Booking getInstance(final String bookingString) throws ParseException {
+		final Booking booking = new Booking();
+
+		String[] arr = bookingString.split(" ");
+		if (arr.length != 6) {
+			throw new ParseException("Not a valid formate", 1);
+		}
+		booking.setRequestedTime(YYYY_MM_DD_HH_MM_SS.parse(arr[0] + " " + arr[1]).getTime());
+
+		String employeeId = arr[2];
+		if (!Pattern.compile("EMP[0-9]{3}").matcher(employeeId).matches()) {
+			throw new ParseException("Employee Id not in pattern", 1);
+		}
+		booking.setEmployeeId(employeeId);
+
+		Schedule schedule = new Schedule();
+		schedule.setStartTime(YYYY_MM_DD_HH_MM.parse(arr[3] + " " + arr[4]).getTime());
+		try {
+			int duration = Integer.valueOf(arr[5]);
+			if (duration <= 0) {
+				throw new ParseException("Not valid meeting duration", 1);
+			}
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTimeInMillis(schedule.getStartTime());
+			calendar.add(Calendar.HOUR_OF_DAY, duration);
+			schedule.setEndTime(calendar.getTimeInMillis());
+		} catch (NumberFormatException nfe) {
+			throw new ParseException("Not able to parse meeting duration", 1);
+		}
+		booking.setSchedule(schedule);
+		booking.setStatus(BookingStatus.APPLIED);
+
+		return booking;
 	}
 	
 	/**
@@ -93,11 +135,14 @@ public class Booking implements Comparable<Booking> {
 		return false;
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
 	@Override
 	public int compareTo(Booking o) {
 		if (o == null) {
 			return -1;
 		}
-		return this.requestedTime == o.requestedTime ? 0 : this.requestedTime < o.requestedTime ? -1 : 1;
+		return new CompareToBuilder().append(this.requestedTime, o.requestedTime).toComparison();
 	}
 }
