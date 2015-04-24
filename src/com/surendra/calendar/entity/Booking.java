@@ -3,6 +3,9 @@
  */
 package com.surendra.calendar.entity;
 
+import java.util.Calendar;
+import java.util.Set;
+
 import com.surendra.calendar.enums.BookingStatus;
 
 /**
@@ -54,6 +57,40 @@ public class Booking implements Comparable<Booking> {
 
 	public void setStatus(BookingStatus status) {
 		this.status = status;
+	}
+	
+	/**
+	 * @param officeStartTime
+	 * @param officeEndTime
+	 * @return
+	 */
+	public boolean isBookingOutsideOfficeHour(final long officeStartTime, final long officeEndTime) {
+		Calendar officeStart = Calendar.getInstance(); officeStart.setTimeInMillis(officeStartTime);
+		Calendar meetingStartTime = Calendar.getInstance();	meetingStartTime.setTimeInMillis(this.getSchedule().getStartTime());
+		
+		if (officeStart.get(Calendar.HOUR_OF_DAY) <= meetingStartTime.get(Calendar.HOUR_OF_DAY)) {
+			Calendar officeEnd = Calendar.getInstance(); officeEnd.setTimeInMillis(officeEndTime);
+			Calendar meetingEndTime = Calendar.getInstance();meetingEndTime.setTimeInMillis(this.getSchedule().getEndTime());
+			if (officeEnd.get(Calendar.HOUR_OF_DAY) < meetingEndTime.get(Calendar.HOUR_OF_DAY)) {
+				return true;
+			}
+		} else {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * @param scheduleSet
+	 * @return
+	 */
+	public boolean isBookingConflict(final Set<Booking> bookings) {
+		for (Booking booking : bookings) {
+			if (this.getSchedule().isScheduleConflict(booking.getSchedule())) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	@Override

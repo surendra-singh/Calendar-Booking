@@ -3,6 +3,7 @@
  */
 package com.surendra.calendar.entity;
 
+
 /**
  * @author surendra.singh
  *
@@ -39,6 +40,19 @@ public class Schedule {
 		this.endTime = endTime;
 	}
 
+	/**
+	 * @param scheduleSet
+	 * @return
+	 */
+	public boolean isScheduleConflict(final Schedule schedule) {
+		if (this.getStartTime() >= schedule.getStartTime() && this.getStartTime() < schedule.getEndTime()) {
+			return true;
+		} else if (this.getEndTime() > schedule.getStartTime() && this.getEndTime() <= schedule.getEndTime()) {
+			return true;
+		}
+		return false;
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
