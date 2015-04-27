@@ -3,7 +3,7 @@
 
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.surendra</groupId>
-	<artifactId>com.surendra.spark</artifactId>
+	<artifactId>com.surendra.calendar</artifactId>
 	<version>1.0.0</version>
 	<name>Calendar Booking</name>
 
@@ -23,7 +23,7 @@
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
-					<encoding>${project.build.sourceEncoding}</encoding>
+					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
 			<plugin>
